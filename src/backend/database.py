@@ -174,6 +174,17 @@ initial_activities = {
         },
         "max_participants": 15,
         "participants": ["test@mergington.edu"]
+    },
+    "Classical Chamber Music Club": {
+        "description": "專注於古典室內樂的小型合奏社團，享受音樂中的默契與感動。",
+        "schedule": "Fridays, 1:00 PM - 4:00 PM",
+        "schedule_details": {
+            "days": ["Friday"],
+            "start_time": "13:00",
+            "end_time": "16:00"
+        },
+        "max_participants": 15,
+        "participants": []
     }
 }
 
