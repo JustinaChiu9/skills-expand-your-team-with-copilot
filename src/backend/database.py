@@ -176,7 +176,7 @@ initial_activities = {
         "participants": ["test@mergington.edu"]
     },
     "Classical Chamber Music Club": {
-        "description": "專注於古典室內樂的小型合奏社團，享受音樂中的默契與感動。",
+        "description": "A small ensemble group focused on classical chamber music, enjoying the harmony and emotion in music.",
         "schedule": "Fridays, 1:00 PM - 4:00 PM",
         "schedule_details": {
             "days": ["Friday"],
