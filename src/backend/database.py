@@ -177,11 +177,11 @@ initial_activities = {
     },
     "Classical Chamber Music Club": {
         "description": "A small ensemble group focused on classical chamber music, enjoying the harmony and emotion in music.",
-        "schedule": "Fridays, 1:00 PM - 4:00 PM",
+        "schedule": "Saturdays, 2:00 PM - 6:00 PM",
         "schedule_details": {
-            "days": ["Friday"],
-            "start_time": "13:00",
-            "end_time": "16:00"
+            "days": ["Saturday"],
+            "start_time": "14:00",
+            "end_time": "18:00"
         },
         "max_participants": 15,
         "participants": []
