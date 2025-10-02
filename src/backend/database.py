@@ -174,6 +174,17 @@ initial_activities = {
         },
         "max_participants": 15,
         "participants": ["test@mergington.edu"]
+    },
+    "Classical Chamber Music Club": {
+        "description": "A small ensemble group focused on classical chamber music, enjoying the harmony and emotion in music.",
+        "schedule": "Saturdays, 2:00 PM - 6:00 PM",
+        "schedule_details": {
+            "days": ["Saturday"],
+            "start_time": "14:00",
+            "end_time": "18:00"
+        },
+        "max_participants": 15,
+        "participants": []
     }
 }
 
