@@ -148,6 +148,36 @@ section h3 {
   width: 100%;
 }
 
+/* Group By Styles */
+#activities-list.grouped {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.activity-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.activity-group-header {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--primary);
+  padding: 8px 12px;
+  border-left: 4px solid var(--primary);
+  background-color: var(--background);
+  border-radius: 4px;
+  margin-bottom: 5px;
+}
+
+.activity-group-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 15px;
+}
+
 .activity-card {
   padding: 12px;
   border: 1px solid var(--border);
@@ -535,6 +565,66 @@ footer {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Toggle Switch */
+.toggle-switch {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+  position: absolute;
+}
+
+.toggle-slider {
+  position: relative;
+  display: inline-block;
+  width: 40px;
+  height: 20px;
+  background-color: var(--border);
+  border-radius: 20px;
+  transition: background-color 0.3s;
+}
+
+.toggle-slider::before {
+  content: "";
+  position: absolute;
+  height: 14px;
+  width: 14px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--primary);
+}
+
+.toggle-switch input:checked + .toggle-slider::before {
+  transform: translateX(20px);
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--text-secondary);
+}
+
+.toggle-switch input:checked ~ .toggle-label {
+  color: var(--primary);
 }
 
 .category-filters,
@@ -556,6 +646,11 @@ footer {
   font-size: 0.75rem;
   cursor: pointer;
   transition: all 0.2s ease;
+}
+
+.category-filter:not([data-category="all"]).disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .category-filter.active,
