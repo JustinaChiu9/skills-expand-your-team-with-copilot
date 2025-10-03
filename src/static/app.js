@@ -14,6 +14,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const categoryFilters = document.querySelectorAll(".category-filter");
   const dayFilters = document.querySelectorAll(".day-filter");
   const timeFilters = document.querySelectorAll(".time-filter");
+  const groupByToggle = document.getElementById("group-by-toggle");
 
   // Authentication elements
   const loginButton = document.getElementById("login-button");
@@ -40,6 +41,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let searchQuery = "";
   let currentDay = "";
   let currentTimeRange = "";
+  let groupByEnabled = false;
 
   // Authentication state
   let currentUser = null;
@@ -420,8 +422,8 @@ document.addEventListener("DOMContentLoaded", () => {
     Object.entries(allActivities).forEach(([name, details]) => {
       const activityType = getActivityType(name, details.description);
 
-      // Apply category filter
-      if (currentFilter !== "all" && activityType !== currentFilter) {
+      // Apply category filter (only when not grouping)
+      if (!groupByEnabled && currentFilter !== "all" && activityType !== currentFilter) {
         return;
       }
 
@@ -466,14 +468,89 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    // Display filtered activities
+    // Display activities - either grouped or flat
+    if (groupByEnabled) {
+      displayGroupedActivities(filteredActivities);
+    } else {
+      displayFlatActivities(filteredActivities);
+    }
+  }
+
+  // Function to display activities in a flat list
+  function displayFlatActivities(filteredActivities) {
+    activitiesList.classList.remove("grouped");
     Object.entries(filteredActivities).forEach(([name, details]) => {
       renderActivityCard(name, details);
     });
   }
 
-  // Function to render a single activity card
-  function renderActivityCard(name, details) {
+  // Function to display activities grouped by category
+  function displayGroupedActivities(filteredActivities) {
+    activitiesList.classList.add("grouped");
+    
+    // Group activities by type
+    const groupedByType = {};
+    Object.entries(filteredActivities).forEach(([name, details]) => {
+      const activityType = getActivityType(name, details.description);
+      if (!groupedByType[activityType]) {
+        groupedByType[activityType] = [];
+      }
+      groupedByType[activityType].push([name, details]);
+    });
+
+    // Display each group
+    const orderedTypes = ["sports", "arts", "academic", "community", "technology"];
+    orderedTypes.forEach((type) => {
+      if (groupedByType[type] && groupedByType[type].length > 0) {
+        const typeInfo = activityTypes[type];
+        
+        // Create group container
+        const groupDiv = document.createElement("div");
+        groupDiv.className = "activity-group";
+        
+        // Create group header
+        const headerDiv = document.createElement("div");
+        headerDiv.className = "activity-group-header";
+        headerDiv.style.borderLeftColor = typeInfo.textColor;
+        headerDiv.textContent = `${typeInfo.label} (${groupedByType[type].length})`;
+        groupDiv.appendChild(headerDiv);
+        
+        // Create group content
+        const contentDiv = document.createElement("div");
+        contentDiv.className = "activity-group-content";
+        
+        // Render activity cards in this group
+        groupedByType[type].forEach(([name, details]) => {
+          const card = createActivityCardElement(name, details);
+          
+          // Add click handlers for delete buttons
+          const deleteButtons = card.querySelectorAll(".delete-participant");
+          deleteButtons.forEach((button) => {
+            button.addEventListener("click", handleUnregister);
+          });
+
+          // Add click handler for register button (only when authenticated)
+          if (currentUser) {
+            const registerButton = card.querySelector(".register-button");
+            const isFull = details.max_participants <= details.participants.length;
+            if (!isFull) {
+              registerButton.addEventListener("click", () => {
+                openRegistrationModal(name);
+              });
+            }
+          }
+          
+          contentDiv.appendChild(card);
+        });
+        
+        groupDiv.appendChild(contentDiv);
+        activitiesList.appendChild(groupDiv);
+      }
+    });
+  }
+
+  // Function to create an activity card element (extracted from renderActivityCard)
+  function createActivityCardElement(name, details) {
     const activityCard = document.createElement("div");
     activityCard.className = "activity-card";
 
@@ -554,23 +631,22 @@ document.addEventListener("DOMContentLoaded", () => {
       </div>
       <div class="activity-card-actions">
         ${
-          currentUser
-            ? `
-          <button class="register-button" data-activity="${name}" ${
-                isFull ? "disabled" : ""
-              }>
-            ${isFull ? "Activity Full" : "Register Student"}
-          </button>
-        `
-            : `
-          <div class="auth-notice">
-            Teachers can register students.
-          </div>
-        `
+          isFull
+            ? '<button class="register-button" disabled>Full</button>'
+            : currentUser
+            ? `<button class="register-button" data-activity="${name}">Register</button>`
+            : '<button class="register-button register-prompt">Login to Register</button>'
         }
       </div>
     `;
 
+    return activityCard;
+  }
+
+  // Function to render a single activity card
+  function renderActivityCard(name, details) {
+    const activityCard = createActivityCardElement(name, details);
+    
     // Add click handlers for delete buttons
     const deleteButtons = activityCard.querySelectorAll(".delete-participant");
     deleteButtons.forEach((button) => {
@@ -580,6 +656,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Add click handler for register button (only when authenticated)
     if (currentUser) {
       const registerButton = activityCard.querySelector(".register-button");
+      const isFull = details.max_participants <= details.participants.length;
       if (!isFull) {
         registerButton.addEventListener("click", () => {
           openRegistrationModal(name);
@@ -600,19 +677,6 @@ document.addEventListener("DOMContentLoaded", () => {
     event.preventDefault();
     searchQuery = searchInput.value;
     displayFilteredActivities();
-  });
-
-  // Add event listeners to category filter buttons
-  categoryFilters.forEach((button) => {
-    button.addEventListener("click", () => {
-      // Update active class
-      categoryFilters.forEach((btn) => btn.classList.remove("active"));
-      button.classList.add("active");
-
-      // Update current filter and display filtered activities
-      currentFilter = button.dataset.category;
-      displayFilteredActivities();
-    });
   });
 
   // Add event listeners to day filter buttons
@@ -641,7 +705,50 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Open registration modal
+  // Add event listener for group by toggle
+  groupByToggle.addEventListener("change", () => {
+    groupByEnabled = groupByToggle.checked;
+    
+    // When enabling group by, reset category filter to "all" and disable other buttons
+    if (groupByEnabled) {
+      currentFilter = "all";
+      categoryFilters.forEach((btn) => {
+        if (btn.dataset.category === "all") {
+          btn.classList.add("active");
+          btn.classList.remove("disabled");
+        } else {
+          btn.classList.remove("active");
+          btn.classList.add("disabled");
+        }
+      });
+    } else {
+      // When disabling group by, enable all category buttons
+      categoryFilters.forEach((btn) => {
+        btn.classList.remove("disabled");
+      });
+    }
+    
+    // Redisplay activities with new grouping mode
+    displayFilteredActivities();
+  });
+
+  // Update category filter behavior based on grouping mode
+  categoryFilters.forEach((button) => {
+    button.addEventListener("click", () => {
+      // If group by is enabled and user clicks a non-"all" button, don't allow it
+      if (groupByEnabled && button.dataset.category !== "all") {
+        return;
+      }
+      
+      // Update active class
+      categoryFilters.forEach((btn) => btn.classList.remove("active"));
+      button.classList.add("active");
+
+      // Update current filter and display filtered activities
+      currentFilter = button.dataset.category;
+      displayFilteredActivities();
+    });
+  });
   function openRegistrationModal(activityName) {
     modalActivityName.textContent = activityName;
     activityInput.value = activityName;
